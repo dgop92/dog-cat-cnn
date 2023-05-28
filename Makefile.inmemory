@@ -1,0 +1,30 @@
+CIFAR10_BATCHES_FILES = data/cifar-10-batches-py/data_batch_1 \
+                        data/cifar-10-batches-py/data_batch_2 \
+                        data/cifar-10-batches-py/data_batch_3 \
+                        data/cifar-10-batches-py/data_batch_4 \
+                        data/cifar-10-batches-py/data_batch_5
+
+
+EXTRACT_DATA = scripts/extract_data_from_cifar.py
+TRANSFORMATIONS_SCRIPT = scripts/create_processed_data.py
+SPLIT_SCRIPT = scripts/divide_dataset.py
+
+IMAGES_SPLITED_FILES = data/processed/images_train.hdf5 \
+					   data/processed/images_val.hdf5 \
+					   data/processed/images_test.hdf5 \
+
+.PHONY: all
+
+all: download_cifar10 $(IMAGES_SPLITED_FILES)
+
+download_cifar10:
+	sh download_cifar10.sh
+
+data/raw/images.hdf5: $(CIFAR10_BATCHES_FILES) $(EXTRACT_DATA)
+	python -m scripts.extract_data_from_cifar
+
+data/processed/images.hdf5: data/raw/images.hdf5 $(TRANSFORMATIONS_SCRIPT)
+	python -m scripts.create_processed_data
+
+$(IMAGES_SPLITED_FILES)&: data/processed/images.hdf5 $(SPLIT_SCRIPT)
+	python -m scripts.divide_dataset
